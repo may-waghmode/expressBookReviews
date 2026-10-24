@@ -1,43 +1,61 @@
 const express = require('express');
-let books = require("./booksdb.js");
-let isValid = require("./auth_users.js").isValid;
-let users = require("./auth_users.js").users;
 const public_users = express.Router();
+const books = require('./booksdb.js');
 
-
-public_users.post("/register", (req,res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+public_users.get('/', async (req, res) => {
+  try {
+    res.status(200).json(books);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to retrieve books' });
+  }
 });
 
-// Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+public_users.get('/isbn/:isbn', async (req, res) => {
+  try {
+    const book = books[req.params.isbn];
+    if (!book) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+    res.status(200).json(book);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to retrieve book' });
+  }
 });
 
-// Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
- });
-  
-// Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+public_users.get('/author/:author', async (req, res) => {
+  try {
+    const author = req.params.author.toLowerCase();
+    const results = Object.values(books).filter(
+      book => book.author.toLowerCase() === author
+    );
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to search by author' });
+  }
 });
 
-// Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+public_users.get('/title/:title', async (req, res) => {
+  try {
+    const title = req.params.title.toLowerCase();
+    const results = Object.values(books).filter(
+      book => book.title.toLowerCase().includes(title)
+    );
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to search by title' });
+  }
 });
 
-//  Get book review
-public_users.get('/review/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+public_users.get('/review/:isbn', async (req, res) => {
+  try {
+    const book = books[req.params.isbn];
+    if (!book) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+    res.status(200).json(book.reviews || {});
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to retrieve reviews' });
+  }
 });
 
-module.exports.general = public_users;
+module.exports = public_users;
